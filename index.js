@@ -14,6 +14,10 @@ const camera = NodeWebcam.create(opts);
 
 async function scanImage() {    
     camera.capture("image", async (error, data) => {
+        if (error != null) {
+            console.log("Failed to snap image: " + error);
+            return;
+        }
         console.log('analyzing image');
         const client = new vision.ImageAnnotatorClient();
         const [result] = await client.textDetection('image.jpg');
