@@ -25,6 +25,7 @@ const firebaseConfig = {
     appId: "1:892829937514:web:de1c0bae29bde28190ff13"
   };
 const firebase = initializeApp(firebaseConfig);
+require("firebase/firestore");
 
 // Keyboard key handling config
 readLine.emitKeypressEvents(process.stdin);
@@ -57,11 +58,45 @@ async function processImage() {
     const [result] = await client.textDetection('image.jpg');
     const [logoResult] = await client.logoDetection('image.jpg');
     const textLabels = result.textAnnotations;
-    console.log('Text results:');
+    console.log('Item metadata:');
+    var dates = []
+    textLabels.forEach(label => {
+        const date = extractExpirationDate(label.description);
+        if (date != null) {
+            dates += date;
+        }
+    });
     textLabels.forEach(label => console.log(label.description));
+    const text = textLabels.reduce((previous, current) => {
+        return previous + current.description + "\n";
+    });
+    console.log("Expiration date: " + extractExpirationDate(text));
+
     const logoLabels = logoResult.logoAnnotations;
     console.log("logo results:")
     logoLabels.forEach(logo => console.log(logo));        
+}
+
+// Item metadata extraction
+
+function extractExpirationDate(text) {
+    if (text == null) { 
+        return null
+    }
+    const regex = /\d{2}\.\d{2}\.\d{2}/gm
+    const results = regex.exec(text);
+    console.log('result: ' + results);
+    if (results != null && results.length > 0) {
+        return results[0];
+    } else {
+        return null;
+    }
+}
+
+// Item saving
+
+async function saveItem() {
+
 }
 
 console.log('Welcome to wastecam! Press space to scan item or q to quit.');
