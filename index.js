@@ -32,6 +32,8 @@ process.stdin.setRawMode(true);
 process.stdin.on('keypress', async (charater, key) => {
     if (key.name == 'space') {
         await scanImage();
+    } else if (key.name == 'p') {
+        await processImage();
     } else if (key.name == 'q') {
         process.exit(0);
     }
@@ -45,18 +47,21 @@ async function scanImage() {
             console.log("Failed to snap image: " + error);
             return;
         }
-        console.log('analyzing image');
-        const client = new vision.ImageAnnotatorClient();
-        const [result] = await client.textDetection('image.jpg');
-        const [logoResult] = await client.logoDetection('image.jpg');
-        const textLabels = result.textAnnotations;
-        console.log('Text results:');
-        textLabels.forEach(label => console.log(label.description));
-        const logoLabels = logoResult.logoAnnotations;
-        console.log("logo results:")
-        logoLabels.forEach(logo => console.log(logo));        
+        await processImage();
     })
 }
 
+async function processImage() {
+    console.log('analyzing image');
+    const client = new vision.ImageAnnotatorClient();
+    const [result] = await client.textDetection('image.jpg');
+    const [logoResult] = await client.logoDetection('image.jpg');
+    const textLabels = result.textAnnotations;
+    console.log('Text results:');
+    textLabels.forEach(label => console.log(label.description));
+    const logoLabels = logoResult.logoAnnotations;
+    console.log("logo results:")
+    logoLabels.forEach(logo => console.log(logo));        
+}
 
 console.log('Welcome to wastecam! Press space to scan item or q to quit.');
