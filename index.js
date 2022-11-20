@@ -1,6 +1,6 @@
 const vision = require('@google-cloud/vision');
 const NodeWebcam = require("node-webcam");
-const fs = require('fs');
+const readLine = require('readline');
 const opts = {
     width: 1280,
     height: 720,
@@ -12,7 +12,11 @@ const opts = {
 };
 const camera = NodeWebcam.create(opts);
 
+readLine.emitKeypressEvents(process.stdin);
+process.stdin.setRawMode(true);
+
 async function scanImage() {    
+    console.log('taking picture');
     camera.capture("image", async (error, data) => {
         if (error != null) {
             console.log("Failed to snap image: " + error);
@@ -31,4 +35,13 @@ async function scanImage() {
     })
 }
 
-scanImage();
+process.stdin.on('keypress', async (charater, key) => {
+    if (key.name == 'space') {
+        await scanImage();
+    } else if (key.name == 'q') {
+        process.exit(0);
+    }
+  })
+
+
+console.log('Welcome to wastecam! Press space to scan item or q to quit.');
