@@ -72,7 +72,7 @@ async function processImage() {
     const logoLabels = logoResult.logoAnnotations;
     if (expirationDate != null) {
         saveItem({
-            expiry: expirationDate,
+            expiry: Timestamp.fromDate(expirationDate),
             brand: extractLabel(logoResult.logoAnnotations),
             name: extractLabel(labelResult.labelAnnotations)
         });
@@ -89,7 +89,11 @@ function extractExpirationDate(text) {
     const results = regex.exec(text);
     console.log('result: ' + results);
     if (results != null && results.length > 0) {
-        return results[0];
+        const components = results[0].split(".");
+        const year = parseInt(components[2]) + 2000;
+        const dateString = year + "." + components[1] + "." + components[0];
+        
+        return new Date(dateString);
     } else {
         return null;
     }
