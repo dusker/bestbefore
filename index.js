@@ -1,6 +1,8 @@
 const vision = require('@google-cloud/vision');
-const NodeWebcam = require("node-webcam");
 const readLine = require('readline');
+
+// Webcam config
+const NodeWebcam = require("node-webcam");
 const opts = {
     width: 1280,
     height: 720,
@@ -12,9 +14,30 @@ const opts = {
 };
 const camera = NodeWebcam.create(opts);
 
+// Firebase config
+const { initializeApp } = require('firebase/app');
+const firebaseConfig = {
+    apiKey: "AIzaSyANLLQZdj6pdnN7WfSkwwjHMg7NaXweFN4",
+    authDomain: "bestbefore-f04a1.firebaseapp.com",
+    projectId: "bestbefore-f04a1",
+    storageBucket: "bestbefore-f04a1.appspot.com",
+    messagingSenderId: "892829937514",
+    appId: "1:892829937514:web:de1c0bae29bde28190ff13"
+  };
+const firebase = initializeApp(firebaseConfig);
+
+// Keyboard key handling config
 readLine.emitKeypressEvents(process.stdin);
 process.stdin.setRawMode(true);
+process.stdin.on('keypress', async (charater, key) => {
+    if (key.name == 'space') {
+        await scanImage();
+    } else if (key.name == 'q') {
+        process.exit(0);
+    }
+  })
 
+// Item scanning
 async function scanImage() {    
     console.log('taking picture');
     camera.capture("image", async (error, data) => {
@@ -34,14 +57,6 @@ async function scanImage() {
         logoLabels.forEach(logo => console.log(logo));        
     })
 }
-
-process.stdin.on('keypress', async (charater, key) => {
-    if (key.name == 'space') {
-        await scanImage();
-    } else if (key.name == 'q') {
-        process.exit(0);
-    }
-  })
 
 
 console.log('Welcome to wastecam! Press space to scan item or q to quit.');

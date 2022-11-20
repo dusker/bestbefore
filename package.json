@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@google-cloud/vision": "^3.0.1",
+    "firebase": "^9.14.0",
     "node-webcam": "^0.8.1"
   }
 }
