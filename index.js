@@ -1,6 +1,4 @@
-const vision = require('@google-cloud/vision');
 const readLine = require('readline');
-
 // Webcam config
 const NodeWebcam = require("node-webcam");
 const opts = {
@@ -15,18 +13,14 @@ const opts = {
 const camera = NodeWebcam.create(opts);
 
 // Firebase config
-const { initializeApp } = require('firebase/app');
-const firebaseConfig = {
-    apiKey: "AIzaSyANLLQZdj6pdnN7WfSkwwjHMg7NaXweFN4",
-    authDomain: "bestbefore-f04a1.firebaseapp.com",
-    projectId: "bestbefore-f04a1",
-    storageBucket: "bestbefore-f04a1.appspot.com",
-    messagingSenderId: "892829937514",
-    appId: "1:892829937514:web:de1c0bae29bde28190ff13"
-  };
-const firebase = initializeApp(firebaseConfig);
-require("firebase/firestore");
+const serviceAccount = require('./firebase-service-account.json');
+const { initializeApp, applicationDefault, cert } = require('firebase-admin/app');
+const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestore');
 
+initializeApp({
+    credential: cert(serviceAccount)
+  });
+  
 // Keyboard key handling config
 readLine.emitKeypressEvents(process.stdin);
 process.stdin.setRawMode(true);
@@ -53,6 +47,7 @@ async function scanImage() {
 }
 
 async function processImage() {
+    const vision = require('@google-cloud/vision');
     console.log('analyzing image');
     const client = new vision.ImageAnnotatorClient();
     const [result] = await client.textDetection('image.jpg');
@@ -112,6 +107,7 @@ function extractLabel(results) {
 
 async function saveItem(item) {
     console.log('saving item: ' + JSON.stringify(item));
+    getFirestore().collection("products").add(item);
 }
 
 console.log('Welcome to wastecam! Press space to scan item or q to quit.');
