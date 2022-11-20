@@ -66,15 +66,19 @@ async function processImage() {
     const text = textLabels.reduce((previous, current) => {
         return previous + current.description + "\n";
     });
-    const expirationDate = extractExpirationDate(text);
+    const expirationDate = extractExpirationDateSecondFormat(text);
     console.log("Expiration date: " + expirationDate);
+    var name = "Unknown";
+    if (textLabels.length > 0) {
+        const allNumbers = /[\d\.]/g
+        name = textLabels[0].description.replace(allNumbers, "");
+    }
 
-    const logoLabels = logoResult.logoAnnotations;
     if (expirationDate != null) {
         saveItem({
             expiry: Timestamp.fromDate(expirationDate),
-            brand: extractLabel(logoResult.logoAnnotations),
-            name: extractLabel(labelResult.labelAnnotations)
+            brand: "Food",
+            name: name
         });
     }
 }
@@ -82,9 +86,6 @@ async function processImage() {
 // Item metadata extraction
 
 function extractExpirationDate(text) {
-    if (text == null) { 
-        return null
-    }
     const regex = /\d{2}\.\d{2}\.\d{2}/gm
     const results = regex.exec(text);
     console.log('result: ' + results);
@@ -96,6 +97,42 @@ function extractExpirationDate(text) {
         return new Date(dateString);
     } else {
         return null;
+    }
+}
+
+function extractExpirationDateSecondFormat(text) {
+    if (text == null) { 
+        return null
+    }
+    const regex = /\d{2}\.\d{2}\.\d{4}/gm
+    const results = regex.exec(text);
+    console.log('result: ' + results);
+    if (results != null && results.length > 0) {
+        const components = results[0].split(".");
+        const year = parseInt(components[2]);
+        const dateString = year + "." + components[1] + "." + components[0];
+
+        return new Date(dateString);
+    } else {
+        return extractExpirationDate(text);
+    }
+}
+
+function extractExpirationDateThirdFormat(text) {
+    if (text == null) { 
+        return null
+    }
+    const regex = /\d{1}\.\d{2}\.\d{2}/gm
+    const results = regex.exec(text);
+    console.log('result: ' + results);
+    if (results != null && results.length > 0) {
+        const components = results[0].split(".");
+        const year = parseInt(components[2]);
+        const dateString = year + "." + components[1] + ".0" + components[0];
+
+        return new Date(dateString);
+    } else {
+        return extractExpirationDate(text);
     }
 }
 
@@ -114,4 +151,4 @@ async function saveItem(item) {
     getFirestore().collection("products").add(item);
 }
 
-console.log('Welcome to wastecam! Press space to scan item or q to quit.');
+console.log('Welcome to Best Before! Press space to scan item or q to quit.');
