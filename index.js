@@ -57,6 +57,7 @@ async function processImage() {
     const client = new vision.ImageAnnotatorClient();
     const [result] = await client.textDetection('image.jpg');
     const [logoResult] = await client.logoDetection('image.jpg');
+    const [labelResult] = await client.labelDetection('image.jpg');
     const textLabels = result.textAnnotations;
     console.log('Item metadata:');
     var dates = []
@@ -70,11 +71,17 @@ async function processImage() {
     const text = textLabels.reduce((previous, current) => {
         return previous + current.description + "\n";
     });
-    console.log("Expiration date: " + extractExpirationDate(text));
+    const expirationDate = extractExpirationDate(text);
+    console.log("Expiration date: " + expirationDate);
 
     const logoLabels = logoResult.logoAnnotations;
-    console.log("logo results:")
-    logoLabels.forEach(logo => console.log(logo));        
+    if (expirationDate != null) {
+        saveItem({
+            expiry: expirationDate,
+            brand: extractLabel(logoResult.logoAnnotations),
+            name: extractLabel(labelResult.labelAnnotations)
+        });
+    }
 }
 
 // Item metadata extraction
@@ -93,10 +100,18 @@ function extractExpirationDate(text) {
     }
 }
 
+function extractLabel(results) {        
+    if (results.length > 0) {
+        return results[0].description
+    } else {
+        return null
+    }
+}
+
 // Item saving
 
-async function saveItem() {
-
+async function saveItem(item) {
+    console.log('saving item: ' + JSON.stringify(item));
 }
 
 console.log('Welcome to wastecam! Press space to scan item or q to quit.');
